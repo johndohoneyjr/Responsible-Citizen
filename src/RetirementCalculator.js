@@ -1,86 +1,70 @@
 import React, { useState, useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-const RetirementCalculator = () => {
-  // Historical S&P 500 returns (approximate annual returns including dividends)
-  const sp500Returns = {
-    1972: 0.1588, 1973: -0.1737, 1974: -0.2964, 1975: 0.3149, 1976: 0.1918,
-    1977: -0.1153, 1978: 0.0106, 1979: 0.1231, 1980: 0.2585, 1981: -0.0973,
-    1982: 0.1549, 1983: 0.1706, 1984: 0.0115, 1985: 0.2633, 1986: 0.1462,
-    1987: 0.0203, 1988: 0.1240, 1989: 0.2725, 1990: -0.0656, 1991: 0.2631,
-    1992: 0.0446, 1993: 0.0706, 1994: -0.0154, 1995: 0.3411, 1996: 0.2026,
-    1997: 0.3101, 1998: 0.2668, 1999: 0.1953, 2000: -0.1014, 2001: -0.1303,
-    2002: -0.2337, 2003: 0.2638, 2004: 0.0888, 2005: 0.0300, 2006: 0.1362,
-    2007: 0.0353, 2008: -0.3849, 2009: 0.2346, 2010: 0.1288, 2011: 0.0000,
-    2012: 0.1341, 2013: 0.2970, 2014: 0.1139, 2015: -0.0073, 2016: 0.0996,
-    2017: 0.1942, 2018: -0.0620, 2019: 0.2890, 2020: 0.1640, 2021: 0.2689,
-    2022: -0.1849, 2023: 0.2426, 2024: 0.2350, 2025: 0.0500
-  };
+// Historical S&P 500 returns (approximate annual returns including dividends)
+const sp500Returns = {
+  1972: 0.1588, 1973: -0.1737, 1974: -0.2964, 1975: 0.3149, 1976: 0.1918,
+  1977: -0.1153, 1978: 0.0106, 1979: 0.1231, 1980: 0.2585, 1981: -0.0973,
+  1982: 0.1549, 1983: 0.1706, 1984: 0.0115, 1985: 0.2633, 1986: 0.1462,
+  1987: 0.0203, 1988: 0.1240, 1989: 0.2725, 1990: -0.0656, 1991: 0.2631,
+  1992: 0.0446, 1993: 0.0706, 1994: -0.0154, 1995: 0.3411, 1996: 0.2026,
+  1997: 0.3101, 1998: 0.2668, 1999: 0.1953, 2000: -0.1014, 2001: -0.1303,
+  2002: -0.2337, 2003: 0.2638, 2004: 0.0888, 2005: 0.0300, 2006: 0.1362,
+  2007: 0.0353, 2008: -0.3849, 2009: 0.2346, 2010: 0.1288, 2011: 0.0000,
+  2012: 0.1341, 2013: 0.2970, 2014: 0.1139, 2015: -0.0073, 2016: 0.0996,
+  2017: 0.1942, 2018: -0.0620, 2019: 0.2890, 2020: 0.1640, 2021: 0.2689,
+  2022: -0.1849, 2023: 0.2426, 2024: 0.2350, 2025: 0.0500
+};
 
-  const taxData = [
-    { year: 1972, ssCap: 166, total: 166 },
-    { year: 1973, ssCap: 890, total: 890 },
-    { year: 1974, ssCap: 1919, total: 1919 },
-    { year: 1975, ssCap: 4968, total: 4968 },
-    { year: 1976, ssCap: 5446, total: 5446 },
-    { year: 1977, ssCap: 6006, total: 6006 },
-    { year: 1978, ssCap: 7079, total: 7079 },
-    { year: 1979, ssCap: 9641, total: 9641 },
-    { year: 1980, ssCap: 16030, total: 16030 },
-    { year: 1981, ssCap: 18269, total: 18269 },
-    { year: 1982, ssCap: 3560, total: 3560 },
-    { year: 1983, ssCap: 5142, total: 5142 },
-    { year: 1984, ssCap: 4549, total: 12148 },
-    { year: 1985, ssCap: 200, total: 10917 },
-    { year: 1986, ssCap: 20628, total: 20787 },
-    { year: 1987, ssCap: 30064, total: 30064 },
-    { year: 1988, ssCap: 39574, total: 39574 },
-    { year: 1989, ssCap: 39396, total: 39396 },
-    { year: 1990, ssCap: 47049, total: 47049 },
-    { year: 1991, ssCap: 53400, total: 57953 },
-    { year: 1992, ssCap: 55500, total: 62700 },
-    { year: 1993, ssCap: 57600, total: 67971 },
-    { year: 1994, ssCap: 56415, total: 56415 },
-    { year: 1995, ssCap: 61200, total: 62981 },
-    { year: 1996, ssCap: 62700, total: 87541 },
-    { year: 1997, ssCap: 65400, total: 99524 },
-    { year: 1998, ssCap: 68400, total: 167336 },
-    { year: 1999, ssCap: 72600, total: 188647 },
-    { year: 2000, ssCap: 76200, total: 172293 },
-    { year: 2001, ssCap: 80400, total: 162707 },
-    { year: 2002, ssCap: 84900, total: 181696 },
-    { year: 2003, ssCap: 87000, total: 177530 },
-    { year: 2004, ssCap: 87900, total: 190739 },
-    { year: 2005, ssCap: 90000, total: 154170 },
-    { year: 2006, ssCap: 94200, total: 154728 },
-    { year: 2007, ssCap: 97500, total: 180603 },
-    { year: 2008, ssCap: 102000, total: 157204 },
-    { year: 2009, ssCap: 101065, total: 101065 },
-    { year: 2010, ssCap: 43024, total: 43024 },
-    { year: 2011, ssCap: 97465, total: 97465 },
-    { year: 2012, ssCap: 48963, total: 48963 },
-    { year: 2013, ssCap: 90082, total: 90082 },
-    { year: 2014, ssCap: 117000, total: 141011 },
-    { year: 2015, ssCap: 118500, total: 161619 },
-    { year: 2016, ssCap: 118500, total: 161422 },
-    { year: 2017, ssCap: 127200, total: 182545 },
-    { year: 2018, ssCap: 128400, total: 199938 },
-    { year: 2019, ssCap: 132900, total: 207245 },
-    { year: 2020, ssCap: 137700, total: 258650 },
-    { year: 2021, ssCap: 142800, total: 240868 },
-    { year: 2022, ssCap: 147000, total: 353654 },
-    { year: 2023, ssCap: 160200, total: 323219 },
-    { year: 2024, ssCap: 168600, total: 338194 }
-  ];
+// Historical Social Security wage caps and Medicare calculations
+const socialSecurityCaps = {
+  1972: 9000, 1973: 10800, 1974: 13200, 1975: 14100, 1976: 15300,
+  1977: 16500, 1978: 17700, 1979: 22900, 1980: 25900, 1981: 29700,
+  1982: 32400, 1983: 35700, 1984: 37800, 1985: 39600, 1986: 42000,
+  1987: 43800, 1988: 45000, 1989: 48000, 1990: 51300, 1991: 53400,
+  1992: 55500, 1993: 57600, 1994: 60600, 1995: 61200, 1996: 62700,
+  1997: 65400, 1998: 68400, 1999: 72600, 2000: 76200, 2001: 80400,
+  2002: 84900, 2003: 87000, 2004: 87900, 2005: 90000, 2006: 94200,
+  2007: 97500, 2008: 102000, 2009: 106800, 2010: 106800, 2011: 106800,
+  2012: 110100, 2013: 113700, 2014: 117000, 2015: 118500, 2016: 118500,
+  2017: 127200, 2018: 128400, 2019: 132900, 2020: 137700, 2021: 142800,
+  2022: 147000, 2023: 160200, 2024: 168600
+};
+
+// Calculate actual Social Security and Medicare taxes
+const taxData = Object.keys(socialSecurityCaps).map(year => {
+  const yearNum = parseInt(year);
+  const ssCap = socialSecurityCaps[yearNum];
+  
+  // Assume high earner hitting SS cap + reasonable Medicare earnings
+  const ssWages = ssCap; // Hit the cap
+  const medicareWages = Math.min(ssCap * 1.5, 200000); // 1.5x SS cap or $200K max
+  
+  // Calculate taxes (employee portion only)
+  const ssTax = ssWages * 0.062; // 6.2%
+  const medicareTax = medicareWages * 0.0145; // 1.45%
+  const employeeTax = ssTax + medicareTax;
+  
+  // Total with employer match
+  const totalContribution = employeeTax * 2;
+  
+  return {
+    year: yearNum,
+    ssCap: ssCap,
+    total: totalContribution
+  };
+});
+
+const RetirementCalculator = () => {
 
   const calculations = useMemo(() => {
     let balance = 0;
     const yearlyData = [];
     
     taxData.forEach((data, index) => {
-      const employeeTax = data.total;
-      const employerMatch = data.total;
-      const totalContribution = employeeTax + employerMatch;
+      const totalContribution = data.total;  // Already includes employee + employer
+      const employeeTax = totalContribution / 2;  // Half is employee portion
+      const employerMatch = totalContribution / 2;  // Half is employer match
       
       balance += totalContribution;
       
